@@ -122,28 +122,40 @@ const TaskManagementPage = () => {
 
   // Toggle task completion
   const handleCompleteToggle = async (taskId) => {
-    try {
-      const taskToUpdate = tasks.find((task) => task._id === taskId);
-      const updatedStatus =
-        taskToUpdate.status === "Pending" ? "Completed" : "Pending";
+     try {
+       // Find the task to update
+       const taskToUpdate = tasks.find((task) => task._id === taskId);
+       if (!taskToUpdate) {
+         message.error("Task not found");
+         return;
+       }
 
-      await axios.post(createTaskUrl, {
-        ...taskToUpdate,
-        status: updatedStatus,
-        listId,
-        useremail,
-        taskId, // Include taskId for updating
-      });
+       // Determine the new status
+       const updatedStatus =
+         taskToUpdate.status === "Pending" ? "Completed" : "Pending";
 
-      // Fetch tasks after toggling completion
-      const response = await axios.get(getAllTaskUrl, {
-        params: { useremail, listId },
-      });
-      setTasks(response.data);
-    } catch (error) {
-      console.log(error);
-      message.error("Unable to update task status");
-    }
+       // Optimistically update the UI
+       setTasks((prevTasks) =>
+         prevTasks.map((task) =>
+           task._id === taskId ? { ...task, status: updatedStatus } : task
+         )
+       );
+
+       // Send the update request to the server
+       await axios.post(createTaskUrl, {
+         ...taskToUpdate,
+         status: updatedStatus,
+         listId,
+         useremail,
+         taskId, // Include taskId for updating
+       });
+
+       // Optionally, you can show a success message if needed
+       message.success("Task status updated");
+     } catch (error) {
+       console.log(error);
+       message.error("Unable to update task status");
+     }
   };
 
   // Sorting tasks
