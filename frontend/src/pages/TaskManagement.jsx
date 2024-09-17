@@ -27,7 +27,11 @@ import axios from "axios";
 const { Option } = Select;
 
 const TaskManagementPage = () => {
-  const { useremail } = useSelector((store) => store.userData);
+  const { useremail,username} = useSelector((store) => store.userData);
+  useEffect(() => {
+    if (username === "") navigate("/");
+  }, []);
+  
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const listId = queryParams.get("listId");
@@ -109,6 +113,7 @@ const TaskManagementPage = () => {
         params: { useremail, listId },
       });
       setTasks(response.data);
+      message.success("Task Deleted",0.85);
     } catch (error) {
       console.log(error);
       message.error("Unable to delete task");

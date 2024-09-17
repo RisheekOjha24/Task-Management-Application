@@ -8,6 +8,7 @@ import {jwtDecode} from "jwt-decode";
 
 import { useDispatch, useSelector } from "react-redux";
 import { userAction } from "../store/userDetails";
+import { message } from "antd";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -33,6 +34,7 @@ const Login = () => {
 
     } catch (error) {
       console.error("Sign in error occured");
+      message.error("Some error occcured at server side",1.2)
     }
   };
 

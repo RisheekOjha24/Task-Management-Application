@@ -54,10 +54,10 @@ const Navbar = () => {
             </h2>
           </div>
         </Link>
-        <div className="p-4">
+        <div className="p-4 mt-4">
           <p
-            className="text-white font-bold text-lg text-center"
-            style={{ fontFamily: "revert-layer", wordSpacing: "4px" }}
+            className="text-white font-bold text-xl text-center"
+            style={{ fontFamily: "monospace", wordSpacing: "2px",letterSpacing:"1px" }}
           >
             Welcome {displayName}
           </p>
