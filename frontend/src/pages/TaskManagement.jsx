@@ -150,8 +150,6 @@ const TaskManagementPage = () => {
          taskId, // Include taskId for updating
        });
 
-       // Optionally, you can show a success message if needed
-       message.success("Task status updated");
      } catch (error) {
        console.log(error);
        message.error("Unable to update task status");
