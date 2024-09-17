@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios"; // Import axios
-import { Button, Input, Form, List, Modal, message } from "antd";
+import axios from "axios";
+import { Button, Input, Form, List, Modal, message, Select } from "antd";
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import "antd/dist/reset.css";
@@ -8,101 +8,126 @@ import {
   createList as createListUrl,
   deleteList as deleteListUrl,
   getAllList as getAllListUrl,
-} from "../utils/APIRoute"; // Import URLs
-import { useSelector } from "react-redux"; // For state management
-import { useNavigate } from "react-router-dom";
-import AddTaskButton from "./AddTaskBtn";
+  createTask as createTaskUrl,
+} from "../utils/APIRoute";
+import { useSelector } from "react-redux";
+import sweetAlert from "./sweetNotification";
 
 const CreateListBox = () => {
   const { useremail } = useSelector((store) => store.userData);
-  const navigate = useNavigate();
   const [form] = Form.useForm();
   const [lists, setLists] = useState([]);
-  const [currentList, setCurrentList] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [selectedListId, setSelectedListId] = useState(null);
+  
   // Fetch all lists when the component mounts
   useEffect(() => {
     const fetchLists = async () => {
       try {
         const response = await axios.get(getAllListUrl, {
-          params: { useremail }, // Send useremail as query parameter
+          params: { useremail },
         });
-        setLists(response.data); // Update state with the fetched lists
+        setLists(response.data);
       } catch (error) {
-        message.error("Failed to fetch lists.");
+        message.error("Failed to fetch lists.",1);
       }
     };
 
     fetchLists();
   }, [useremail]);
 
-  // Handle adding a new list
   const handleAddList = async (values) => {
-    if (lists.some((list) => list.name === values.listName)) {
-      message.error("List name already exists.", 1);
+    const listName=values.listName.trim();
+    if(listName===""){
+            message.error("Please Enter a list Name", 1);
+            return;
+    }
+    if (lists.some((list) => list.name === listName)) {
+      message.error("List name already exists.",1);
       return;
     }
     try {
       await axios.post(createListUrl, {
         useremail,
         listName: values.listName,
-      }); // Create the list using the API
+      });
       message.success("List created successfully.",1);
       const response = await axios.get(getAllListUrl, {
-        params: { useremail }, // Refresh the list
+        params: { useremail },
       });
-      setLists(response.data); // Update state with the new list
+      setLists(response.data);
       form.resetFields();
     } catch (error) {
       message.error("Failed to create list.",1);
     }
   };
-  const handleAddTask=()=>{
-    console.log("Still wokring on it");
-  }
 
-  // Handle deleting a list
+  const showTaskModal = (listId) => {
+    setSelectedListId(listId);
+    setIsTaskModalVisible(true);
+  };
+
+  const handleAddTask = async (values) => {
+    try {
+          console.log(selectedListId);
+          console.log(values);
+            await axios.post(createTaskUrl, {
+        ...values,
+        listId: selectedListId,
+        useremail,
+      });
+      message.success("Task added successfully.",1);
+      setIsTaskModalVisible(false);
+    } catch (error) {
+      message.error("Failed to add task.",1);
+    }
+  };
+
   const handleDeleteList = async (listId) => {
+    const response=await sweetAlert();
+    if(!response.isConfirmed) return 
     try {
       await axios.delete(deleteListUrl, {
-        params: { useremail, id: listId }, // Send useremail and listId as query parameters
-      }); // Delete the list using the API
+        params: { useremail, id: listId },
+      });
       message.success("List deleted successfully.",1);
-      setLists(lists.filter((list) => list.id !== listId)); // Update state to remove deleted list
-      setTasks(tasks.filter((task) => task.listId !== listId)); // Remove associated tasks if necessary
+      setLists(lists.filter((list) => list.id !== listId));
+      setTasks(tasks.filter((task) => task.listId !== listId));
     } catch (error) {
       message.error("Failed to delete list.",1);
     }
   };
 
-  // Filter lists based on search term
   const filteredLists = lists.filter((list) =>
     list.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="flex-1 ml-1/4 p-4 h-screen overflow-auto">
+    <div className="flex-1  p-4 h-screen overflow-auto bgMainPage"
+    >
       <Form
         form={form}
         onFinish={handleAddList}
         layout="inline"
-        className="mb-4"
+        className="mb-4 ListNamebx"
       >
         <Form.Item
           name="listName"
-          rules={[{ required: true, message: "Please enter a list name" }]}
+          label={
+            <span className="font-bold text-lg text-blue-500">List Name</span>
+          }
         >
-          <Input placeholder="List Name" />
+          <Input placeholder="Enter List Name" />
         </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit">
+        <Form.Item className="btnCreateList">
+          <Button type="primary" htmlType="submit" className="mb-20 ">
             Create List
           </Button>
         </Form.Item>
       </Form>
+
       <Input
         placeholder="Search Lists"
         className="mb-4"
@@ -114,7 +139,7 @@ const CreateListBox = () => {
           dataSource={filteredLists}
           renderItem={(list) => (
             <List.Item
-              className="h-12 p-2 flex items-center"
+              className="h-12 p-2 flex items-center text-base font-semibold"
               actions={[
                 <Link
                   to={`/manage-task?listId=${list.id}`}
@@ -128,18 +153,14 @@ const CreateListBox = () => {
                     View Tasks
                   </Button>
                 </Link>,
-                // <Button
-                //   icon={<PlusOutlined />}
-                //   onClick={() => showTaskModal(list.id)}
-                //   key={`add-${list.id}`}
-                // >
-                //   Add Task
-                // </Button>,
-                <AddTaskButton
-                  // key={`add-${list.id}`}
-                  listId={list.id}
-                  onAddTask={null}
-                />,
+                <Button
+                  icon={<PlusOutlined />}
+                  onClick={() => showTaskModal(list.id)}
+                  className="style-btn"
+                  key={`add-${list.id}`}
+                >
+                  Add Task
+                </Button>,
                 <Button
                   type="link"
                   danger
@@ -152,7 +173,7 @@ const CreateListBox = () => {
                 </Button>,
               ]}
             >
-              {list.name}
+              <h1 className="">{list.name}</h1>
             </List.Item>
           )}
         />
@@ -181,7 +202,10 @@ const CreateListBox = () => {
             <Input type="number" min={1} placeholder="Enter priority number" />
           </Form.Item>
           <Form.Item name="status" label="Status">
-            <Input placeholder="Pending or Completed" />
+            <Select placeholder="Select status">
+              <Select.Option value="Pending">Pending</Select.Option>
+              <Select.Option value="Completed">Completed</Select.Option>
+            </Select>
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit">

@@ -12,7 +12,7 @@ const App = () => {
         <Route exact path="/" element={<Login />}></Route>
         <Route exact path="/home" element={<Home />}></Route>
         <Route exact path="/manage-task" element={<TaskManagementPage />}>
-          </Route>
+        </Route>
       </Routes>
     </Router>
   );

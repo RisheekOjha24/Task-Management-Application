@@ -16,17 +16,12 @@ module.exports.signin= async (req,res)=>{
 
             await user.save();
         }
-        else{
-            console.log("User found");
-        }
-
-        // Respond with the username
         res.status(200).json({
           username: name,
         });
 
     } catch (err) {
-        // console.error(err);
+        
         res.status(500).json({ message: 'Server error' });
     }
 };

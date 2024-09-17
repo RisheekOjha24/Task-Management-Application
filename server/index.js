@@ -3,7 +3,8 @@ const app = express();
 const cors = require("cors");
 const dbConnect = require("./dbConnect");
 const authRoutes = require("./routes/authRoutes");
-const listRoutes=require("./routes/listRoutes");
+const listRoutes = require("./routes/listRoutes");
+const taskRoutes = require("./routes/taskRoutes");
 
 require("dotenv").config();
 
@@ -17,6 +18,7 @@ dbConnect();
 
 app.use("/auth", authRoutes);
 app.use("/list",listRoutes);
+app.use("/task",taskRoutes);
 
 app.get("/", (req, res) => {
     console.log("APi hit");

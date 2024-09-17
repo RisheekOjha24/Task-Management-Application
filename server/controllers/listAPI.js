@@ -54,8 +54,8 @@ const getAllList = async (req, res) => {
     }
 
     // Find all lists associated with the user
-    const lists = await List.find({ userId: user._id });
-
+    const lists = await List.find({ userId: user._id }); //return arrays of objetcs
+   
     // Format the lists into the desired array of objects
     const listArrObj = lists.map((list) => ({
       name: list.name,
@@ -75,7 +75,6 @@ const getAllList = async (req, res) => {
 // ==========================================================================
 const deleteList = async (req, res) => {
   try {
-
     const { useremail, id } = req.query;
 
     if (!useremail || !id) {
@@ -93,6 +92,9 @@ const deleteList = async (req, res) => {
     // Delete the list item by ID, ensuring it belongs to the user
     const result = await List.findOneAndDelete({ _id: id, userId: user._id });
 
+    // Delete all tasks related to the specified listId
+    await Task.deleteMany({ listId: id });
+
     if (!result) {
       return res
         .status(404)
@@ -108,5 +110,6 @@ const deleteList = async (req, res) => {
       .json({ error: "An error occurred while deleting the list item." });
   }
 };
+
 
 module.exports={createList,getAllList,deleteList};

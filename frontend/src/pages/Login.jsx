@@ -3,7 +3,7 @@ import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { signin } from "../utils/APIRoute";
-import frontImage from "../assets/invoiceImage.jpeg";
+import frontImage from "../assets/invoiceImg.jpeg";
 import {jwtDecode} from "jwt-decode";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -38,7 +38,7 @@ const Login = () => {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex:1 }} >
         <img
           src={frontImage}
           alt="Welcome"
@@ -51,14 +51,8 @@ const Login = () => {
         />
       </div>
       <div
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "white",
-          padding: "20px",
-        }}
+      
+        className="loginRightPart"
       >
         <div style={{ transform: "scale(1.2)" }}>
           <GoogleOAuthProvider clientId="1026617270799-ac4m3lfuarba592tii7gq5k5p28s31ml.apps.googleusercontent.com">
