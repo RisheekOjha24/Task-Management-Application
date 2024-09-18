@@ -71,7 +71,8 @@ Open a new terminal
 
 ## Acknowledgements
 
-- React
-- Node.js
-- Express
-- MongoDB
+- React: A JavaScript library for building user interfaces.
+- Node.js: JavaScript runtime built on Chrome's V8 JavaScript engine.
+- Express: A web application framework for Node.js.
+- MongoDB: A NoSQL database used for storing application data.
+- MongoDB Compass: A graphical user interface for MongoDB.
