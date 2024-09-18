@@ -10,6 +10,7 @@ import {
   Row,
   Col,
   message,
+  Spin,
 } from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css"; // Ensure Ant Design CSS is included
@@ -20,7 +21,7 @@ import {
   getAllTask as getAllTaskUrl,
   createTask as createTaskUrl,
 } from "../utils/APIRoute";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 
@@ -28,9 +29,11 @@ const { Option } = Select;
 
 const TaskManagementPage = () => {
   const { useremail, username } = useSelector((store) => store.userData);
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (username === "") navigate("/");
-  }, []);
+  }, [username, navigate]);
 
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -42,11 +45,13 @@ const TaskManagementPage = () => {
   const [editingTask, setEditingTask] = useState(null);
   const [sortMode, setSortMode] = useState("dueDate");
   const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = useState(true); // Loading state
   const [form] = Form.useForm();
 
   // Fetch tasks
   useEffect(() => {
     async function fetchTasks() {
+      setLoading(true); // Set loading to true
       try {
         const response = await axios.get(getAllTaskUrl, {
           params: { useremail, listId },
@@ -55,6 +60,8 @@ const TaskManagementPage = () => {
       } catch (error) {
         console.log(error);
         message.error("Unable to fetch tasks");
+      } finally {
+        setLoading(false); // Set loading to false
       }
     }
     fetchTasks();
@@ -104,16 +111,15 @@ const TaskManagementPage = () => {
       const res = await sweetAlert("Delete");
       if (!res.isConfirmed) return;
 
+      // Optimistically update the UI
+            
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+      message.success("Task Deleted", 0.85);
+
       await axios.delete(deleteTaskUrl, {
         params: { taskId, listId },
       });
 
-      // Fetch tasks after deletion
-      const response = await axios.get(getAllTaskUrl, {
-        params: { useremail, listId },
-      });
-      setTasks(response.data);
-      message.success("Task Deleted", 0.85);
     } catch (error) {
       console.log(error);
       message.error("Unable to delete task");
@@ -123,25 +129,21 @@ const TaskManagementPage = () => {
   // Toggle task completion
   const handleCompleteToggle = async (taskId) => {
     try {
-      // Find the task to update
       const taskToUpdate = tasks.find((task) => task._id === taskId);
       if (!taskToUpdate) {
         message.error("Task not found");
         return;
       }
 
-      // Determine the new status
       const updatedStatus =
         taskToUpdate.status === "Pending" ? "Completed" : "Pending";
 
-      // Optimistically update the UI
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
           task._id === taskId ? { ...task, status: updatedStatus } : task
         )
       );
 
-      // Send the update request to the server
       await axios.post(createTaskUrl, {
         ...taskToUpdate,
         status: updatedStatus,
@@ -224,63 +226,69 @@ const TaskManagementPage = () => {
                 border: "1px solid #d9d9d9",
               }}
             >
-              <List
-                bordered
-                dataSource={filteredTasks}
-                renderItem={(task) => (
-                  <List.Item
-                    actions={[
-                      <Button
-                        type="link"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEdit(task)}
-                        className="style-btn-other"
-                      >
-                        Edit
-                      </Button>,
-                      <Button
-                        type="link"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleDelete(task._id)}
-                        className="style-btn-other"
-                      >
-                        Delete
-                      </Button>,
-                      <Button
-                        type="link"
-                        onClick={() => handleCompleteToggle(task._id)}
-                        style={{
-                          color: "white",
-                          fontWeight: "bold",
-                          backgroundColor:
-                            task.status !== "Pending" ? "green" : "red",
-                        }}
-                      >
-                        {task.status !== "Pending" ? "Complete" : "Pending"}
-                      </Button>,
-                    ]}
-                  >
-                    <div>
+              {loading ? ( // Show spinner while loading
+                <div style={{ textAlign: "center", padding: "20px" }}>
+                  <Spin size="large" />
+                </div>
+              ) : (
+                <List
+                  bordered
+                  dataSource={filteredTasks}
+                  renderItem={(task) => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => handleEdit(task)}
+                          className="style-btn-other"
+                        >
+                          Edit
+                        </Button>,
+                        <Button
+                          type="link"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDelete(task._id)}
+                          className="style-btn-other"
+                        >
+                          Delete
+                        </Button>,
+                        <Button
+                          type="link"
+                          onClick={() => handleCompleteToggle(task._id)}
+                          style={{
+                            color: "white",
+                            fontWeight: "bold",
+                            backgroundColor:
+                              task.status !== "Pending" ? "green" : "red",
+                          }}
+                        >
+                          {task.status !== "Pending" ? "Complete" : "Pending"}
+                        </Button>,
+                      ]}
+                    >
                       <div>
-                        <strong>Title:</strong> {task.title}
+                        <div>
+                          <strong>Title:</strong> {task.title}
+                        </div>
+                        <div>
+                          <strong>Description:</strong> {task.description}
+                        </div>
+                        <div>
+                          <strong>Due Date:</strong> {task.dueDate}
+                        </div>
+                        <div>
+                          <strong>Priority:</strong> {task.priority}
+                        </div>
+                        <div>
+                          <strong>Status:</strong> {task.status}
+                        </div>
                       </div>
-                      <div>
-                        <strong>Description:</strong> {task.description}
-                      </div>
-                      <div>
-                        <strong>Due Date:</strong> {task.dueDate}
-                      </div>
-                      <div>
-                        <strong>Priority:</strong> {task.priority}
-                      </div>
-                      <div>
-                        <strong>Status:</strong> {task.status}
-                      </div>
-                    </div>
-                  </List.Item>
-                )}
-              />
+                    </List.Item>
+                  )}
+                />
+              )}
             </div>
           </Col>
         </Row>
