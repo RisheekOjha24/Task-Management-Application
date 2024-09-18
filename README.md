@@ -7,7 +7,7 @@ A Task management web application built using the MERN stack. It allows users to
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
-- [Running the Application](#runnnig-the-application)
+- [Running The Application](#runnig-the-application)
 - [Acknowledgements](#acknowledgements)
 
 ## Prerequisites
@@ -53,7 +53,7 @@ MONGO_URL=mongodb://127.0.0.1:27017/TaskManagement
 ```
 You can change the Port number and Database name
 
-## Running the Application
+## Running The Application
 
 ### Frontend
    ```
