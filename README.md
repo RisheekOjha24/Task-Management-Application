@@ -23,7 +23,6 @@ git clone https://github.com/RisheekOjha24/Task-Management-Application.git
 ```
 
 ### 1. Set Up Frontend
-
 From root directory navigate to the frontend directory and install the required Node.js modules:
 
 ```
@@ -31,7 +30,8 @@ cd frontend
 npm install
 ```
 
-### 2. Navigate to the server directory and install the required Node.js modules:
+### 2. Set up Backend
+Navigate to the server directory and install the required Node.js modules:
 ```
 cd ..
 cd server
