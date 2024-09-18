@@ -7,7 +7,7 @@ A Task management web application built using the MERN stack. It allows users to
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Environment Variables](#environment-variables)
-- [Running The Application](#runnig-the-application)
+- [Running The Application](#running-the-application)
 - [Acknowledgements](#acknowledgements)
 
 ## Prerequisites
