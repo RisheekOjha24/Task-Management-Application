@@ -17,18 +17,21 @@ A list management web application built using the MERN stack. It allows users to
 
 ## Installation
 
-```bash
-git clone https://github.com/RisheekOjha24/InvoiceAlert.git
+```
+git clone https://github.com/RisheekOjha24/Task-Management-Application
 ```
 
-Frontend setup
-```bash
+### 1. Set Up Frontend
+
+From root directory navigate to the frontend directory and install the required Node.js modules:
+
+```
 cd frontend
 npm install
 ```
 
-Backend setup
-```bash
+###2 Navigate to the server directory and install the required Node.js modules:
+```
 cd ..
 cd server
 npm install
@@ -37,11 +40,11 @@ npm install
 ## Environment Variables
 
 Create a .env file in the server directory with the following variables:
-
+```
 PORT=4500 <br>
-MONGO_URL=mongodb://127.0.0.1:27017/ReminderSystem <br>
-ZAPIER_WEBHOOK_URL=<your_zapier_webhook_url> <br>
-
+MONGO_URL=mongodb://127.0.0.1:27017/TaskManagement <br>
+```
+You can change the Port number and Database name
 
 Running the Application
 
