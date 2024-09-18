@@ -1,4 +1,5 @@
-export const host = "https://task-management-application-28pq.onrender.com";
+const BackendURL = import.meta.env.VITE_BACKEND_URL;
+export const host = BackendURL;
 // export const host = "http://localhost:4500";
 export const signin = `${host}/auth/signin`;
 export const signup=`${host}/auth/signup`;
