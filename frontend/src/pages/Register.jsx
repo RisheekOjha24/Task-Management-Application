@@ -2,35 +2,27 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Form, Input, Button, Typography, message } from "antd";
 import axios from "axios";
-import { signin } from "../utils/APIRoute";
+import { signup } from "../utils/APIRoute"; // Assuming signup is the API endpoint for registration
 import frontImage from "../assets/invoiceImg.jpeg";
-import { useDispatch } from "react-redux";
-import { userAction } from "../store/userDetails";
 
 const { Title } = Typography;
 
-const Login = () => {
+const Register = () => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (values) => {
+  const handleRegister = async (values) => {
     setLoading(true);
     try {
-      const { email, password } = values;
-      const response = await axios.post(signin, { email, password });
-      const { username } = response.data;
+      const { username, useremail, password } = values;
+      await axios.post(signup, { username, useremail, password });
 
-      localStorage.setItem("username", username);
-      localStorage.setItem("useremail", email);
-
-      dispatch(userAction.userData({ username, email }));
-
-      message.success("Login successful!", 1.2);
-      navigate("/home");
+      message.success("Registration successful!", 1.2);
+      navigate("/");
     } catch (error) {
-      const errorMsg= error.response?.data?.message;
-      message.error(errorMsg, 1.2);
+      const errorMessage = error.response?.data?.message || "Registration failed. Please try again.";
+      console.log(error.response);
+      message.error(errorMessage, 1.2);
     } finally {
       setLoading(false);
     }
@@ -44,13 +36,29 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center">
         <div className="w-96 p-10 shadow-lg rounded-lg bg-white">
           <Title level={3} className="text-center mb-6">
-            Welcome Back
+            Create Account
           </Title>
-          <Form onFinish={handleLogin} layout="vertical">
+          <Form onFinish={handleRegister} layout="vertical">
+            <Form.Item
+              label="Username"
+              name="username"
+              rules={[
+                { required: true, message: "Please enter your username!" },
+              ]}
+            >
+              <Input
+                placeholder="Enter your username"
+                size="large"
+                className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </Form.Item>
             <Form.Item
               label="Email"
-              name="email"
-              rules={[{ required: true, message: "Please enter your email!" }]}
+              name="useremail"
+              rules={[
+                { required: true, message: "Please enter your email!" },
+                { type: "email", message: "Please enter a valid email!" },
+              ]}
             >
               <Input
                 placeholder="Enter your email"
@@ -63,6 +71,10 @@ const Login = () => {
               name="password"
               rules={[
                 { required: true, message: "Please enter your password!" },
+                {
+                  min: 4,
+                  message: "Password must be at least 4 characters long!",
+                },
               ]}
             >
               <Input.Password
@@ -79,13 +91,13 @@ const Login = () => {
                 size="large"
                 className="w-48"
               >
-                Login
+                Sign Up
               </Button>
             </Form.Item>
           </Form>
           <div className="text-center mt-5">
             <Typography.Text>
-              Don't have an account? <Link to="/register">Sign Up</Link>
+              Already have an account? <Link to="/">Log in</Link>
             </Typography.Text>
           </div>
         </div>
@@ -94,4 +106,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

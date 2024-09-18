@@ -16,7 +16,9 @@ const LogoutButton = () => {
 
     googleLogout();
     console.log("User logged out.");
-    localStorage.clear();
+    localStorage.removeItem("username");
+     localStorage.removeItem("useremail");
+
     navigate("/");
   };
 

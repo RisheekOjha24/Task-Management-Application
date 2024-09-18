@@ -1,11 +1,7 @@
-const task = {
-  title: "Complete project",
-  description: "Finish the project by the deadline",
-  dueDate: new Date(),
-  priority: "high",
-  status: "pending",
-  __v: 0, // Mongoose's internal version key, which we want to remove
-};
-
-const { __v, ...taskWithoutVersion } = task;
-console.log(taskWithoutVersion);
+var a;
+const obj={name:'e',phone:12};
+const fn=()=>{
+  a=obj.name;
+}
+fn();
+console.log(a);

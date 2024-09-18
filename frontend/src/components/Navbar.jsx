@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Layout, Menu } from "antd";
 import { HomeOutlined, HistoryOutlined } from "@ant-design/icons";
@@ -9,12 +9,19 @@ import { useSelector } from "react-redux";
 const { Sider } = Layout;
 
 const Navbar = () => {
+
   const location = useLocation(); // Get current path
-  const { username } = useSelector((store) => store.userData);
   const navigate = useNavigate();
+   const { username, useremail } = useSelector((store) => store.userData);
 
   useEffect(() => {
-    if (username === "") navigate("/");
+ 
+    if (username === "" || useremail===""){
+      localStorage.removeItem('username');
+      localStorage.removeItem("useremail");
+      navigate("/");
+    }
+      
   }, [username, navigate]);
 
   const selectedKey = () => {
@@ -30,8 +37,6 @@ const Navbar = () => {
       label: <Link to="/home">Home</Link>,
     }
   ];
-
-  const displayName = username.split(" ")[0];
 
   return (
     <Layout style={{ minHeight: "100vh", maxWidth: "20vw" }}>
@@ -59,7 +64,7 @@ const Navbar = () => {
             className="text-white font-bold text-xl text-center"
             style={{ fontFamily: "monospace", wordSpacing: "2px",letterSpacing:"1px" }}
           >
-            Welcome {displayName}
+            Welcome {username}
           </p>
         </div>
         <Menu

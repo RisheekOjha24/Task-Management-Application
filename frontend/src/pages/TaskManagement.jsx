@@ -27,11 +27,11 @@ import axios from "axios";
 const { Option } = Select;
 
 const TaskManagementPage = () => {
-  const { useremail,username} = useSelector((store) => store.userData);
+  const { useremail, username } = useSelector((store) => store.userData);
   useEffect(() => {
     if (username === "") navigate("/");
   }, []);
-  
+
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const listId = queryParams.get("listId");
@@ -113,7 +113,7 @@ const TaskManagementPage = () => {
         params: { useremail, listId },
       });
       setTasks(response.data);
-      message.success("Task Deleted",0.85);
+      message.success("Task Deleted", 0.85);
     } catch (error) {
       console.log(error);
       message.error("Unable to delete task");
@@ -122,38 +122,37 @@ const TaskManagementPage = () => {
 
   // Toggle task completion
   const handleCompleteToggle = async (taskId) => {
-     try {
-       // Find the task to update
-       const taskToUpdate = tasks.find((task) => task._id === taskId);
-       if (!taskToUpdate) {
-         message.error("Task not found");
-         return;
-       }
+    try {
+      // Find the task to update
+      const taskToUpdate = tasks.find((task) => task._id === taskId);
+      if (!taskToUpdate) {
+        message.error("Task not found");
+        return;
+      }
 
-       // Determine the new status
-       const updatedStatus =
-         taskToUpdate.status === "Pending" ? "Completed" : "Pending";
+      // Determine the new status
+      const updatedStatus =
+        taskToUpdate.status === "Pending" ? "Completed" : "Pending";
 
-       // Optimistically update the UI
-       setTasks((prevTasks) =>
-         prevTasks.map((task) =>
-           task._id === taskId ? { ...task, status: updatedStatus } : task
-         )
-       );
+      // Optimistically update the UI
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? { ...task, status: updatedStatus } : task
+        )
+      );
 
-       // Send the update request to the server
-       await axios.post(createTaskUrl, {
-         ...taskToUpdate,
-         status: updatedStatus,
-         listId,
-         useremail,
-         taskId, // Include taskId for updating
-       });
-
-     } catch (error) {
-       console.log(error);
-       message.error("Unable to update task status");
-     }
+      // Send the update request to the server
+      await axios.post(createTaskUrl, {
+        ...taskToUpdate,
+        status: updatedStatus,
+        listId,
+        useremail,
+        taskId, // Include taskId for updating
+      });
+    } catch (error) {
+      console.log(error);
+      message.error("Unable to update task status");
+    }
   };
 
   // Sorting tasks
