@@ -19,7 +19,7 @@ A list management web application built using the MERN stack. It allows users to
 ## Installation
 
 ```
-git clone https://github.com/RisheekOjha24/Task-Management-Application
+git clone https://github.com/RisheekOjha24/Task-Management-Application.git
 ```
 
 ### 1. Set Up Frontend
