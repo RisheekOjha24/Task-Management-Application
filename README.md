@@ -48,12 +48,12 @@ This variable holds the backend URL used by the frontend to establish a connecti
 
 ### 2. Create a .env file in the server directory with the following variables:
 ```
-PORT=4500 <br>
-MONGO_URL=mongodb://127.0.0.1:27017/TaskManagement <br>
+PORT=4500
+MONGO_URL=mongodb://127.0.0.1:27017/TaskManagement
 ```
 You can change the Port number and Database name
 
-##Running the Application
+## Running the Application
 
 ### Frontend
    ```
