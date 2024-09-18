@@ -5,10 +5,13 @@ A list management web application built using the MERN stack. It allows users to
 
 ### 1. Set Up Frontend
 
-Navigate to the frontend directory and install the required Node.js modules:
+From root Directory navigate to the frontend directory 
 
-```bash
+```
 cd frontend
+```
+Install the required Node.js modules:
+```
 npm install
 ```
 
@@ -20,9 +23,9 @@ npm run dev
 
 ### 2. Set Up Backend
 
-Navigate to the server directory:
+From root Directory navigate to the server directory:
 
-```bash
+```
 cd server
 ```
 
@@ -38,7 +41,7 @@ Create a `.env` file inside the server directory. Specify the following environm
 
 ```dotenv
 PORT=4500
-MONGO_URL="mongodb://127.0.0.1:27017/movielibrary"
+MONGO_URL="mongodb://127.0.0.1:27017/TaskMangement"
 ```
 Note: You can change PORT number and MONGO_URL database name.
 ### 4. Start the Server
