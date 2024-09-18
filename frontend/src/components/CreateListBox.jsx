@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Button, Input, Form, List, Modal, message, Select } from "antd";
+import { Button, Input, Form, List, Modal, message, Select, Spin } from "antd";
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import "antd/dist/reset.css";
@@ -17,21 +17,24 @@ const CreateListBox = () => {
   const { useremail } = useSelector((store) => store.userData);
   const [form] = Form.useForm();
   const [lists, setLists] = useState([]);
-  const [tasks, setTasks] = useState([]);
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedListId, setSelectedListId] = useState(null);
-  
+  const [loading, setLoading] = useState(true); // Loading state for initial fetch
+
   // Fetch all lists when the component mounts
   useEffect(() => {
     const fetchLists = async () => {
+      setLoading(true); // Start loading state
       try {
         const response = await axios.get(getAllListUrl, {
           params: { useremail },
         });
         setLists(response.data);
       } catch (error) {
-        message.error("Failed to fetch lists.",1);
+        message.error("Failed to fetch lists.", 1);
+      } finally {
+        setLoading(false); // End loading state
       }
     };
 
@@ -39,13 +42,13 @@ const CreateListBox = () => {
   }, [useremail]);
 
   const handleAddList = async (values) => {
-    const listName=values.listName.trim();
-    if(listName===""){
-            message.error("Please Enter a list Name", 1);
-            return;
+    const listName = values.listName.trim();
+    if (listName === "") {
+      message.error("Please Enter a list Name", 1);
+      return;
     }
     if (lists.some((list) => list.name === listName)) {
-      message.error("List name already exists.",1);
+      message.error("List name already exists.", 1);
       return;
     }
     try {
@@ -53,14 +56,14 @@ const CreateListBox = () => {
         useremail,
         listName: values.listName,
       });
-      message.success("List created successfully.",1);
+      message.success("List created successfully.", 1);
       const response = await axios.get(getAllListUrl, {
         params: { useremail },
       });
       setLists(response.data);
       form.resetFields();
     } catch (error) {
-      message.error("Failed to create list.",1);
+      message.error("Failed to create list.", 1);
     }
   };
 
@@ -71,32 +74,33 @@ const CreateListBox = () => {
 
   const handleAddTask = async (values) => {
     try {
-          console.log(selectedListId);
-          console.log(values);
-            await axios.post(createTaskUrl, {
+      await axios.post(createTaskUrl, {
         ...values,
         listId: selectedListId,
         useremail,
       });
-      message.success("Task added successfully.",1);
+      message.success("Task added successfully.", 1);
       setIsTaskModalVisible(false);
     } catch (error) {
-      message.error("Failed to add task.",1);
+      message.error("Failed to add task.", 1);
     }
   };
 
   const handleDeleteList = async (listId) => {
-    const response=await sweetAlert();
-    if(!response.isConfirmed) return 
+    const response = await sweetAlert("Delete");
+    if (!response.isConfirmed) return;
+
     try {
-      await axios.delete(deleteListUrl, {
+      
+        setLists((prevLists) => prevLists.filter((list) => list.id !==  listId));
+         message.success("List deleted successfully.", 1);
+        await axios.delete(deleteListUrl, {
         params: { useremail, id: listId },
+
       });
-      message.success("List deleted successfully.",1);
-      setLists(lists.filter((list) => list.id !== listId));
-      setTasks(tasks.filter((task) => task.listId !== listId));
+     
     } catch (error) {
-      message.error("Failed to delete list.",1);
+      message.error("Failed to delete list.", 1);
     }
   };
 
@@ -105,8 +109,7 @@ const CreateListBox = () => {
   );
 
   return (
-    <div className="flex-1  p-4 h-screen overflow-auto bgMainPage"
-    >
+    <div className="flex-1 p-4 h-screen overflow-auto bgMainPage">
       <Form
         form={form}
         onFinish={handleAddList}
@@ -134,49 +137,55 @@ const CreateListBox = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="overflow-y-auto max-h-80">
-        <List
-          bordered
-          dataSource={filteredLists}
-          renderItem={(list) => (
-            <List.Item
-              className="h-12 p-2 flex items-center text-base font-semibold"
-              actions={[
-                <Link
-                  to={`/manage-task?listId=${list.id}`}
-                  key={`view-${list.id}`}
-                >
+        {loading ? ( // Show spinner only during initial fetch
+          <div style={{ textAlign: "center", padding: "20px" }}>
+            <Spin size="large" />
+          </div>
+        ) : (
+          <List
+            bordered
+            dataSource={filteredLists}
+            renderItem={(list) => (
+              <List.Item
+                className="h-12 p-2 flex items-center text-base font-semibold"
+                actions={[
+                  <Link
+                    to={`/manage-task?listId=${list.id}`}
+                    key={`view-${list.id}`}
+                  >
+                    <Button
+                      type="link"
+                      icon={<EyeOutlined />}
+                      className="style-btn-other"
+                    >
+                      View Tasks
+                    </Button>
+                  </Link>,
+                  <Button
+                    icon={<PlusOutlined />}
+                    onClick={() => showTaskModal(list.id)}
+                    className="style-btn"
+                    key={`add-${list.id}`}
+                  >
+                    Add Task
+                  </Button>,
                   <Button
                     type="link"
-                    icon={<EyeOutlined />}
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleDeleteList(list.id)}
+                    key={`delete-${list.id}`}
                     className="style-btn-other"
                   >
-                    View Tasks
-                  </Button>
-                </Link>,
-                <Button
-                  icon={<PlusOutlined />}
-                  onClick={() => showTaskModal(list.id)}
-                  className="style-btn"
-                  key={`add-${list.id}`}
-                >
-                  Add Task
-                </Button>,
-                <Button
-                  type="link"
-                  danger
-                  icon={<DeleteOutlined />}
-                  onClick={() => handleDeleteList(list.id)}
-                  key={`delete-${list.id}`}
-                  className="style-btn-other"
-                >
-                  Delete List
-                </Button>,
-              ]}
-            >
-              <h1 className="">{list.name}</h1>
-            </List.Item>
-          )}
-        />
+                    Delete List
+                  </Button>,
+                ]}
+              >
+                <h1 className="">{list.name}</h1>
+              </List.Item>
+            )}
+          />
+        )}
       </div>
       <Modal
         title="Add Task"
