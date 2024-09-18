@@ -31,7 +31,7 @@ cd frontend
 npm install
 ```
 
-###2 Navigate to the server directory and install the required Node.js modules:
+### 2. Navigate to the server directory and install the required Node.js modules:
 ```
 cd ..
 cd server
