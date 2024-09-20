@@ -22,6 +22,7 @@ const CreateListBox = () => {
   const [selectedListId, setSelectedListId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [creatingList, setCreatingList] = useState(false); // New state for creating list
+  const [creatingTask, setCreatingTask] = useState(false); // New state for creating list
 
   useEffect(() => {
     const fetchLists = async () => {
@@ -77,14 +78,17 @@ const CreateListBox = () => {
   };
 
   const handleAddTask = async (values) => {
+    setCreatingTask(true);
     try {
       await axios.post(createTaskUrl, {
         ...values,
         listId: selectedListId,
         useremail,
       });
+      setCreatingTask(false);
       message.success("Task added successfully.", 1);
       setIsTaskModalVisible(false);
+    
     } catch (error) {
       message.error("Failed to add task.", 1);
     }
@@ -223,7 +227,7 @@ const CreateListBox = () => {
             </Select>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" loading={creatingTask}>
               Add Task
             </Button>
           </Form.Item>
