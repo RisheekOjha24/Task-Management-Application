@@ -39,13 +39,19 @@ const Navbar = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh", maxWidth: "20vw" }}>
+    <Layout
+      style={{
+        minHeight: "100vh",
+        maxWidth: "20vw",
+        position: "relative",
+        zIndex: "4",
+      }}
+    >
       <Sider
         width={220}
         theme="dark"
         breakpoint="lg"
         collapsedWidth="0"
-        className="site-layout-background"
       >
         <Link to={"/home"}>
           <div className="logo flex justify-center flex-col items-center pt-4">
@@ -62,7 +68,11 @@ const Navbar = () => {
         <div className="p-4 mt-4">
           <p
             className="text-white font-bold text-xl text-center"
-            style={{ fontFamily: "monospace", wordSpacing: "2px",letterSpacing:"1px" }}
+            style={{
+              fontFamily: "monospace",
+              wordSpacing: "2px",
+              letterSpacing: "1px",
+            }}
           >
             Welcome {username}
           </p>
@@ -75,7 +85,10 @@ const Navbar = () => {
           className="text-base"
           style={{ lineHeight: "64px" }}
         />
-        <div className="absolute bottom-0 left-0 p-4">
+        <div
+          className="sticky left-0 p-4"
+          style={{top: "100rem"  }}
+        >
           <LogoutButton />
         </div>
       </Sider>
