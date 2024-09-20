@@ -211,16 +211,40 @@ const CreateListBox = () => {
           >
             <Input />
           </Form.Item>
-          <Form.Item name="description" label="Description">
+
+          <Form.Item
+            name="description"
+            label="Description"
+            rules={[
+              { required: true, message: "Please enter the Description" },
+            ]}
+          >
             <Input.TextArea />
           </Form.Item>
-          <Form.Item name="dueDate" label="Due Date">
+
+          <Form.Item
+            name="dueDate"
+            label="Due Date"
+            rules={[{ required: true, message: "Please enter the Due date" }]}
+          >
             <Input type="date" />
           </Form.Item>
-          <Form.Item name="priority" label="Priority">
+
+          <Form.Item
+            name="priority"
+            label="Priority"
+            rules={[
+              { required: true, message: "Please enter the priority number" },
+            ]}
+          >
             <Input type="number" min={1} placeholder="Enter priority number" />
           </Form.Item>
-          <Form.Item name="status" label="Status">
+
+          <Form.Item
+            name="status"
+            label="Status"
+            rules={[{ required: true, message: "Please enter the status" }]}
+          >
             <Select placeholder="Select status">
               <Select.Option value="Pending">Pending</Select.Option>
               <Select.Option value="Completed">Completed</Select.Option>
