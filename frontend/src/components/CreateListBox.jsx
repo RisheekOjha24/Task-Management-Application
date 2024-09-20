@@ -1,240 +1,330 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { Button, Input, Form, List, Modal, message, Select, Spin } from "antd";
-import { PlusOutlined, DeleteOutlined, EyeOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
-import "antd/dist/reset.css";
+import React, { useEffect, useState } from "react";
 import {
-  createList as createListUrl,
-  deleteList as deleteListUrl,
-  getAllList as getAllListUrl,
+  Button,Input,Form,List,Modal,Select,Space,Row,Col,message,Spin} from "antd";
+import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import "antd/dist/reset.css"; // Ensure Ant Design CSS is included
+import Navbar from "../components/Navbar";
+import sweetAlert from "../components/sweetNotification";
+import {
+  deleteTask as deleteTaskUrl,
+  getAllTask as getAllTaskUrl,
   createTask as createTaskUrl,
 } from "../utils/APIRoute";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import sweetAlert from "./sweetNotification";
+import axios from "axios";
 
-const CreateListBox = () => {
-  const { useremail } = useSelector((store) => store.userData);
-  const [form] = Form.useForm();
-  const [lists, setLists] = useState([]);
-  const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedListId, setSelectedListId] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [creatingList, setCreatingList] = useState(false); // New state for creating list
-  const [creatingTask, setCreatingTask] = useState(false); // New state for creating list
+const { Option } = Select;
+
+const TaskManagementPage = () => {
+  const { useremail, username } = useSelector((store) => store.userData);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchLists = async () => {
-      setLoading(true);
+    if (username === "") navigate("/");
+  }, [username, navigate]);
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const listId = queryParams.get("listId");
+
+  // State management
+  const [tasks, setTasks] = useState([]);
+  const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [sortMode, setSortMode] = useState("dueDate");
+  const [searchText, setSearchText] = useState("");
+  const [loading, setLoading] = useState(true); // Loading state
+  const [creatingTask, setCreatingTask] = useState(false); // New state for creating list
+  const [form] = Form.useForm();
+
+  // Fetch tasks
+  useEffect(() => {
+    async function fetchTasks() {
+      setLoading(true); // Set loading to true
       try {
-        const response = await axios.get(getAllListUrl, {
-          params: { useremail },
+        const response = await axios.get(getAllTaskUrl, {
+          params: { useremail, listId },
         });
-        setLists(response.data);
+        setTasks(response.data);
       } catch (error) {
-        message.error("Failed to fetch lists.", 1);
+        console.log(error);
+        message.error("Unable to fetch tasks");
       } finally {
-        setLoading(false);
+        setLoading(false); // Set loading to false
       }
-    };
-
-    fetchLists();
-  }, [useremail]);
-
-  const handleAddList = async (values) => {
-    const listName = values.listName.trim();
-    if (listName === "") {
-      message.error("Please Enter a list Name", 1);
-      return;
     }
-    if (lists.some((list) => list.name === listName)) {
-      message.error("List name already exists.", 1);
-      return;
-    }
+    fetchTasks();
+  }, [useremail, listId]);
 
-    setCreatingList(true); // Start loading for creating list
-    try {
-      await axios.post(createListUrl, {
-        useremail,
-        listName: values.listName,
-      });
-      message.success("List created successfully.", 1);
-      const response = await axios.get(getAllListUrl, {
-        params: { useremail },
-      });
-      setLists(response.data);
-      form.resetFields();
-    } catch (error) {
-      message.error("Failed to create list.", 1);
-    } finally {
-      setCreatingList(false); // End loading for creating list
-    }
-  };
-
-  const showTaskModal = (listId) => {
-    setSelectedListId(listId);
+  // Handle task edit
+  const handleEdit = (task) => {
+    setEditingTask(task);
+    form.setFieldsValue({
+      title: task.title,
+      description: task.description,
+      dueDate: task.dueDate,
+      priority: task.priority,
+      status: task.status,
+    });
     setIsTaskModalVisible(true);
   };
 
-  const handleAddTask = async (values) => {
+  // Handle task save (create or update)
+  const handleSave = async (values) => {
     setCreatingTask(true);
     try {
-      await axios.post(createTaskUrl, {
+      const payload = {
         ...values,
-        listId: selectedListId,
+        listId,
         useremail,
+        taskId: editingTask ? editingTask._id : undefined, // Include taskId for editing
+      };
+      await axios.post(createTaskUrl, payload);
+
+      // Fetch tasks after creating/updating
+      const response = await axios.get(getAllTaskUrl, {
+        params: { useremail, listId },
       });
+      setTasks(response.data);
       setCreatingTask(false);
-      message.success("Task added successfully.", 1);
+
       setIsTaskModalVisible(false);
-    
+      setEditingTask(null);
     } catch (error) {
-      message.error("Failed to add task.", 1);
+      console.log(error);
+      message.error("Unable to save task");
     }
   };
 
-  const handleDeleteList = async (listId) => {
-    const response = await sweetAlert("Delete");
-    if (!response.isConfirmed) return;
-
+  // Handle task deletion
+  const handleDelete = async (taskId) => {
     try {
-      setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
-      message.success("List deleted successfully.", 1);
-      await axios.delete(deleteListUrl, {
-        params: { useremail, id: listId },
+      const res = await sweetAlert("Delete");
+      if (!res.isConfirmed) return;
+
+      // Optimistically update the UI
+
+      setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
+      message.success("Task Deleted", 0.85);
+
+      await axios.delete(deleteTaskUrl, {
+        params: { taskId, listId },
       });
     } catch (error) {
-      message.error("Failed to delete list.", 1);
+      console.log(error);
+      message.error("Unable to delete task");
     }
   };
 
-  const filteredLists = lists.filter((list) =>
-    list.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // Toggle task completion
+  const handleCompleteToggle = async (taskId) => {
+    try {
+      const taskToUpdate = tasks.find((task) => task._id === taskId);
+      if (!taskToUpdate) {
+        message.error("Task not found");
+        return;
+      }
+
+      const updatedStatus =
+        taskToUpdate.status === "Pending" ? "Completed" : "Pending";
+
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task._id === taskId ? { ...task, status: updatedStatus } : task
+        )
+      );
+
+      await axios.post(createTaskUrl, {
+        ...taskToUpdate,
+        status: updatedStatus,
+        listId,
+        useremail,
+        taskId, // Include taskId for updating
+      });
+    } catch (error) {
+      console.log(error);
+      message.error("Unable to update task status");
+    }
+  };
+
+  // Sorting tasks
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (sortMode === "dueDate") {
+      return new Date(a.dueDate) - new Date(b.dueDate);
+    }
+    if (sortMode === "priority") {
+      return a.priority - b.priority;
+    }
+    return 0;
+  });
+
+  // Filtering tasks
+  const filteredTasks = sortedTasks.filter(
+    (task) =>
+      task.title.toLowerCase().includes(searchText.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  return (
-    <div className="flex-1 p-4 h-screen overflow-auto bgMainPage z-2">
-      <Form
-        form={form}
-        onFinish={handleAddList}
-        layout="inline"
-        className="mb-4 ListNamebx"
-      >
-        <Form.Item
-          name="listName"
-          label={
-            <span className="font-bold text-lg text-blue-500">List Name</span>
-          }
-        >
-          <Input placeholder="Enter List Name" />
-        </Form.Item>
-        <Form.Item className="btnCreateList">
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="mb-20"
-            loading={creatingList}
-          >
-            Create List
-          </Button>
-        </Form.Item>
-      </Form>
+  // Open task modal
+  const openTaskModal = () => {
+    setEditingTask(null);
+    form.resetFields();
+    setIsTaskModalVisible(true);
+  };
 
-      <Input
-        placeholder="Search Lists"
-        className="mb-4"
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <div className="overflow-y-auto max-h-80">
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "20px" }}>
-            <Spin size="large" />
-          </div>
-        ) : (
-          <List
-            bordered
-            dataSource={filteredLists}
-            renderItem={(list) => (
-              <List.Item
-                className="h-12 p-2 m-1 flex items-center text-base font-semibold"
-                actions={[
-                  <Link
-                    to={`/manage-task?listId=${list.id}`}
-                    key={`view-${list.id}`}
-                  >
-                    <Button
-                      type="link"
-                      icon={<EyeOutlined />}
-                      className="style-btn-other"
-                    >
-                      View Tasks
-                    </Button>
-                  </Link>,
-                  <Button
-                    icon={<PlusOutlined />}
-                    onClick={() => showTaskModal(list.id)}
-                    className="style-btn"
-                    key={`add-${list.id}`}
-                  >
-                    Add Task
-                  </Button>,
-                  <Button
-                    type="link"
-                    danger
-                    icon={<DeleteOutlined />}
-                    onClick={() => handleDeleteList(list.id)}
-                    key={`delete-${list.id}`}
-                    className="style-btn-other"
-                  >
-                    Delete List
-                  </Button>,
-                ]}
+  return (
+    <div className="flex backgroundImg">
+      <Navbar />
+      <div className="p-4 flex-auto">
+        <Row justify="center" gutter={[16, 16]}>
+          <Col xs={24} sm={12} lg={8}>
+            <Input
+              className="mt-8"
+              placeholder="Search tasks by title or description"
+              onChange={(e) => setSearchText(e.target.value)}
+              allowClear
+            />
+          </Col>
+          <Col xs={24} sm={12} lg={8}>
+            <Space className="w-full">
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={openTaskModal}
+                className="add-task-btn"
               >
-                <h1 className="">{list.name}</h1>
-              </List.Item>
-            )}
-          />
-        )}
+                Add Task
+              </Button>
+              <Select
+                defaultValue="dueDate"
+                onChange={(value) => setSortMode(value)}
+              >
+                <Option value="dueDate">Sort by Due Date</Option>
+                <Option value="priority">Sort by Priority</Option>
+              </Select>
+            </Space>
+          </Col>
+        </Row>
+
+        <Row justify="center" gutter={[18, 18]}>
+          <Col xs={24} sm={20} lg={16}>
+            <div
+              style={{
+                maxHeight: "76vh",
+                overflowY: "auto",
+                minWidth: "60vw",
+                border: "1px solid #d9d9d9",
+              }}
+            >
+              {loading ? ( // Show spinner while loading
+                <div style={{ textAlign: "center", padding: "20px" }}>
+                  <Spin size="large" />
+                </div>
+              ) : (
+                <List
+                  bordered
+                  dataSource={filteredTasks}
+                  renderItem={(task) => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="link"
+                          icon={<EditOutlined />}
+                          onClick={() => handleEdit(task)}
+                          className="style-btn-other"
+                        >
+                          Edit
+                        </Button>,
+                        <Button
+                          type="link"
+                          danger
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleDelete(task._id)}
+                          className="style-btn-other"
+                        >
+                          Delete
+                        </Button>,
+                        <Button
+                          type="link"
+                          onClick={() => handleCompleteToggle(task._id)}
+                          style={{
+                            color: "white",
+                            fontWeight: "bold",
+                            backgroundColor:
+                              task.status !== "Pending" ? "green" : "red",
+                          }}
+                        >
+                          {task.status !== "Pending" ? "Complete" : "Pending"}
+                        </Button>,
+                      ]}
+                    >
+                      <div>
+                        <div>
+                          <strong>Title:</strong> {task.title}
+                        </div>
+                        <div>
+                          <strong>Description:</strong> {task.description}
+                        </div>
+                        <div>
+                          <strong>Due Date:</strong> {task.dueDate}
+                        </div>
+                        <div>
+                          <strong>Priority:</strong> {task.priority}
+                        </div>
+                        <div>
+                          <strong>Status:</strong> {task.status}
+                        </div>
+                      </div>
+                    </List.Item>
+                  )}
+                />
+              )}
+            </div>
+          </Col>
+        </Row>
+
+        <Modal
+          title={editingTask ? "Edit Task" : "Add Task"}
+          open={isTaskModalVisible}
+          onCancel={() => setIsTaskModalVisible(false)}
+          footer={null}
+        >
+          <Form form={form} onFinish={handleSave} layout="vertical">
+            <Form.Item
+              name="title"
+              label="Title"
+              rules={[
+                { required: true, message: "Please enter the task title" },
+              ]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item name="description" label="Description">
+              <Input.TextArea />
+            </Form.Item>
+            <Form.Item name="dueDate" label="Due Date">
+              <Input type="date" />
+            </Form.Item>
+            <Form.Item name="priority" label="Priority">
+              <Input type="number" min={1} />
+            </Form.Item>
+            <Form.Item name="status" label="Status">
+              <Select>
+                <Option value="Pending">Pending</Option>
+                <Option value="Completed">Completed</Option>
+              </Select>
+            </Form.Item>
+            <Form.Item>
+              <Button type="primary" htmlType="submit" loading={creatingTask}>
+                {editingTask ? "Save" : "Add Task"}
+              </Button>
+            </Form.Item>
+          </Form>
+        </Modal>
       </div>
-      <Modal
-        title="Add Task"
-        open={isTaskModalVisible}
-        onCancel={() => setIsTaskModalVisible(false)}
-        footer={null}
-      >
-        <Form onFinish={handleAddTask} layout="vertical">
-          <Form.Item
-            name="title"
-            label="Title"
-            rules={[{ required: true, message: "Please enter a task title" }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item name="dueDate" label="Due Date">
-            <Input type="date" />
-          </Form.Item>
-          <Form.Item name="priority" label="Priority">
-            <Input type="number" min={1} placeholder="Enter priority number" />
-          </Form.Item>
-          <Form.Item name="status" label="Status">
-            <Select placeholder="Select status">
-              <Select.Option value="Pending">Pending</Select.Option>
-              <Select.Option value="Completed">Completed</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={creatingTask}>
-              Add Task
-            </Button>
-          </Form.Item>
-        </Form>
-      </Modal>
     </div>
   );
 };
 
-export default CreateListBox;
+export default TaskManagementPage;
