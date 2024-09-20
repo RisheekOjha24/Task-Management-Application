@@ -87,13 +87,14 @@ const TaskManagementPage = () => {
         params: { useremail, listId },
       });
       setTasks(response.data);
-      setCreatingTask(false);
 
       setIsTaskModalVisible(false);
       setEditingTask(null);
     } catch (error) {
       console.log(error);
       message.error("Unable to save task");
+    } finally {
+      setCreatingTask(false); // End loading for creating task
     }
   };
 
@@ -300,16 +301,38 @@ const TaskManagementPage = () => {
             >
               <Input />
             </Form.Item>
-            <Form.Item name="description" label="Description">
+            <Form.Item
+              name="description"
+              label="Description"
+              rules={[
+                { required: true, message: "Please enter the Description" },
+              ]}
+            >
               <Input.TextArea />
             </Form.Item>
-            <Form.Item name="dueDate" label="Due Date">
+            <Form.Item
+              name="dueDate"
+              label="Due Date"
+              rules={[{ required: true, message: "Please enter the Due date" }]}
+            >
               <Input type="date" />
             </Form.Item>
-            <Form.Item name="priority" label="Priority">
+            <Form.Item
+              name="priority"
+              label="Priority"
+              rules={[
+                { required: true, message: "Please enter the priority number" },
+              ]}
+            >
               <Input type="number" min={1} />
             </Form.Item>
-            <Form.Item name="status" label="Status">
+            <Form.Item
+              name="status"
+              label="Status"
+              rules={[
+                { required: true, message: "Please enter the status" },
+              ]}
+            >
               <Select>
                 <Option value="Pending">Pending</Option>
                 <Option value="Completed">Completed</Option>
