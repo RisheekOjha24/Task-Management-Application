@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Button,
-  Input,
-  Form,
-  List,
-  Modal,
-  Select,
-  Space,
-  Row,
-  Col,
-  message,
-  Spin,
-} from "antd";
+  Button,Input,Form,List,Modal,Select,Space,Row,Col,message,Spin} from "antd";
 import { PlusOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css"; // Ensure Ant Design CSS is included
 import Navbar from "../components/Navbar";
@@ -46,6 +35,7 @@ const TaskManagementPage = () => {
   const [sortMode, setSortMode] = useState("dueDate");
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true); // Loading state
+  const [creatingTask, setCreatingTask] = useState(false); // New state for creating list
   const [form] = Form.useForm();
 
   // Fetch tasks
@@ -82,6 +72,7 @@ const TaskManagementPage = () => {
 
   // Handle task save (create or update)
   const handleSave = async (values) => {
+    setCreatingTask(true);
     try {
       const payload = {
         ...values,
@@ -96,6 +87,7 @@ const TaskManagementPage = () => {
         params: { useremail, listId },
       });
       setTasks(response.data);
+      setCreatingTask(false);
 
       setIsTaskModalVisible(false);
       setEditingTask(null);
@@ -112,14 +104,13 @@ const TaskManagementPage = () => {
       if (!res.isConfirmed) return;
 
       // Optimistically update the UI
-            
+
       setTasks((prevTasks) => prevTasks.filter((task) => task._id !== taskId));
       message.success("Task Deleted", 0.85);
 
       await axios.delete(deleteTaskUrl, {
         params: { taskId, listId },
       });
-
     } catch (error) {
       console.log(error);
       message.error("Unable to delete task");
@@ -325,7 +316,7 @@ const TaskManagementPage = () => {
               </Select>
             </Form.Item>
             <Form.Item>
-              <Button type="primary" htmlType="submit">
+              <Button type="primary" htmlType="submit" loading={creatingTask}>
                 {editingTask ? "Save" : "Add Task"}
               </Button>
             </Form.Item>
