@@ -20,12 +20,12 @@ const CreateListBox = () => {
   const [isTaskModalVisible, setIsTaskModalVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedListId, setSelectedListId] = useState(null);
-  const [loading, setLoading] = useState(true); // Loading state for initial fetch
+  const [loading, setLoading] = useState(true);
+  const [creatingList, setCreatingList] = useState(false); // New state for creating list
 
-  // Fetch all lists when the component mounts
   useEffect(() => {
     const fetchLists = async () => {
-      setLoading(true); // Start loading state
+      setLoading(true);
       try {
         const response = await axios.get(getAllListUrl, {
           params: { useremail },
@@ -34,7 +34,7 @@ const CreateListBox = () => {
       } catch (error) {
         message.error("Failed to fetch lists.", 1);
       } finally {
-        setLoading(false); // End loading state
+        setLoading(false);
       }
     };
 
@@ -51,6 +51,8 @@ const CreateListBox = () => {
       message.error("List name already exists.", 1);
       return;
     }
+
+    setCreatingList(true); // Start loading for creating list
     try {
       await axios.post(createListUrl, {
         useremail,
@@ -64,6 +66,8 @@ const CreateListBox = () => {
       form.resetFields();
     } catch (error) {
       message.error("Failed to create list.", 1);
+    } finally {
+      setCreatingList(false); // End loading for creating list
     }
   };
 
@@ -91,14 +95,11 @@ const CreateListBox = () => {
     if (!response.isConfirmed) return;
 
     try {
-      
-        setLists((prevLists) => prevLists.filter((list) => list.id !==  listId));
-         message.success("List deleted successfully.", 1);
-        await axios.delete(deleteListUrl, {
+      setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
+      message.success("List deleted successfully.", 1);
+      await axios.delete(deleteListUrl, {
         params: { useremail, id: listId },
-
       });
-     
     } catch (error) {
       message.error("Failed to delete list.", 1);
     }
@@ -109,7 +110,7 @@ const CreateListBox = () => {
   );
 
   return (
-    <div className="flex-1 p-4 h-screen overflow-auto bgMainPage">
+    <div className="flex-1 p-4 h-screen overflow-auto bgMainPage z-2">
       <Form
         form={form}
         onFinish={handleAddList}
@@ -125,7 +126,12 @@ const CreateListBox = () => {
           <Input placeholder="Enter List Name" />
         </Form.Item>
         <Form.Item className="btnCreateList">
-          <Button type="primary" htmlType="submit" className="mb-20 ">
+          <Button
+            type="primary"
+            htmlType="submit"
+            className="mb-20"
+            loading={creatingList}
+          >
             Create List
           </Button>
         </Form.Item>
@@ -137,7 +143,7 @@ const CreateListBox = () => {
         onChange={(e) => setSearchTerm(e.target.value)}
       />
       <div className="overflow-y-auto max-h-80">
-        {loading ? ( // Show spinner only during initial fetch
+        {loading ? (
           <div style={{ textAlign: "center", padding: "20px" }}>
             <Spin size="large" />
           </div>
@@ -147,7 +153,7 @@ const CreateListBox = () => {
             dataSource={filteredLists}
             renderItem={(list) => (
               <List.Item
-                className="h-12 p-2 flex items-center text-base font-semibold"
+                className="h-12 p-2 m-1 flex items-center text-base font-semibold"
                 actions={[
                   <Link
                     to={`/manage-task?listId=${list.id}`}
